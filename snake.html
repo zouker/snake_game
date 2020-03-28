@@ -1,0 +1,92 @@
+  <!DOCTYPE html>
+<html>
+    <head>
+        <title>Snake Game</title>
+    </head>
+    <body>
+        <canvas id="gameCanvas" width="300" height="300"></canvas>
+        <style>
+            #gameCanvas {
+                border: 1px solid goldenrod;
+            }
+        </style>
+    </body>
+    <script>
+        let snake = [
+                    {x: 150, y: 150},  
+                    {x: 140, y: 150},
+                    {x: 130, y: 150},  
+                    {x: 120, y: 150},  
+                    {x: 110, y: 150},
+                    ];
+        const ctx = gameCanvas.getContext("2d");
+        document.addEventListener("keydown", changeDirection);
+        main();
+        function main(){
+            setTimeout(function onTick() {
+                clearCanvas();
+                moveSnake(curr_direction);
+                drawSnake();
+                main();
+            }, 1000);
+        }
+        curr_direction = 2;
+        function changeDirection(event) {
+            console.log("dupa");
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const keyPressed = event.keyCode;
+            switch (keyPressed) {
+                case LEFT_KEY:
+                    curr_direction = (curr_direction+1)%4;
+                    console.log(curr_direction);
+                    break;
+                case RIGHT_KEY:
+                    curr_direction = (curr_direction-1+4)%4;  // +4 to make sure no negative
+                    console.log(curr_direction);
+                    break;
+            }
+        }
+        function drawSnakePart(snakePart) {
+            ctx.fillStyle = 'lightgreen';
+            ctx.strokestyle = 'darkgreen';
+            ctx.fillRect(snakePart.x, snakePart.y, 10, 10);
+            ctx.strokeRect(snakePart.x, snakePart.y, 10, 10);
+        }
+        function clearCanvas() {
+            ctx.fillStyle = 'white';
+            ctx.strokestyle = 'white';
+            ctx.fillRect(0, 0, 300, 300);
+            ctx.strokeRect(0, 0, 300, 300);
+        }
+        function drawSnake() {
+            snake.forEach(drawSnakePart);
+        }
+        function moveSnake(curr_direction){
+            snake.shift();
+            head = snake.pop();
+            snake.push({x: head.x, y:head.y})
+            switch (curr_direction) {
+                case 0:
+                    snake.push({x: head.x, y:head.y-10});
+                    break;
+                case 1:
+                    snake.push({x: head.x-10, y:head.y});
+                    break;
+                case 2:
+                    snake.push({x: head.x, y:head.y+10});
+                    break;
+                case 3:
+                    snake.push({x: head.x+10, y:head.y});
+                    break;
+            }
+            
+        }
+        
+
+        
+
+
+
+    </script>
+</html>
