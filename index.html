@@ -51,8 +51,8 @@
         }
 
         function resetGame(){
-            if (maxScore.textContent < currentScore.textContent)
-                maxScore.textContent = currentScore.textContent;
+            if (maxScore.textContent < score)
+                maxScore.textContent = score;
             currentScore.textContent = 0;
             score = 0;
             food = [];
@@ -123,7 +123,7 @@
                     break;
             }   
             //outside playtable
-            if (next_x > 30 || next_x < 0 || next_y > 30 || next_x <0){
+            if (next_x > 30 || next_y < 0 || next_y > 30 || next_x <0){
                 resetGame();
                 return;
             }
