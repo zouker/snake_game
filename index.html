@@ -19,6 +19,8 @@
     </body>
     <script>
         const UNIT_SIZE = 10;
+        const TICK_TIME_MS = 300;
+        const TICKS_PER_FOOD = 1;
         let defaultSnake = [
                     {x: 15, y: 15},  
                     {x: 14, y: 15},
@@ -32,6 +34,7 @@
         var currentScore = document.getElementById("currentScore"); 
         var maxScore = document.getElementById("maxScore"); 
         let score = 0;
+        let ticks = 0;
         document.addEventListener("keydown", changeDirection);
         main();
         
@@ -43,11 +46,13 @@
                 drawSnake();
                 drawFood();
                 main();
-            }, 300);
+                ticks++;
+            }, TICK_TIME_MS);
         }
 
         function resetGame(){
-            maxScore.textContent = currentScore.textContent;
+            if (maxScore.textContent < currentScore.textContent)
+                maxScore.textContent = currentScore.textContent;
             currentScore.textContent = 0;
             score = 0;
             food = [];
@@ -117,21 +122,23 @@
                     next_y = head.y;
                     break;
             }   
+            //outside playtable
             if (next_x > 30 || next_x < 0 || next_y > 30 || next_x <0){
                 resetGame();
                 return;
             }
-            
-
+            //run into itself
             if (snake.find(function(elem){
                 return (elem.x == next_x) && (elem.y == next_y);
             })){
                 resetGame();
                 return;
             }
-
+            
+            //move snake
             snake.push({x: next_x, y: next_y});
-
+            
+            //enlarge only if eaten apple
             index_found = food.indexOf(food.find(function(elem){
                 return (elem.x == next_x) && (elem.y == next_y);
             }));        
@@ -141,21 +148,24 @@
                 currentScore.textContent = score;
             }
             else
-                snake.shift();
+                snake.shift(); 
    
         }
+        function isIn(cords, x, y){
+            return typeof(cords.find(function(elem){
+                return ((elem.x == x) && (elem.y == y))})) 
+                !== "undefined";
+        }
         function generate_food(){
+            if (ticks%TICKS_PER_FOOD)
+                return;
             let rand_x = 0;
             let rand_y = 0;
             do{
                 rand_x = Math.floor(Math.random() * 30);
                 rand_y = Math.floor(Math.random() * 30);                
-            } while (
-                (snake.find(function(elem){
-                return ((elem.x == rand_x) && (elem.y == rand_y))})) && 
-                (food.find(function(elem){
-                return ((elem.x == rand_x) && (elem.y == rand_y))}))
-                );
+            } while(isIn(snake, rand_x, rand_y) | isIn(food, rand_x, rand_y))
+                
             food.push({x: rand_x, y:rand_y});
         }
     </script>
