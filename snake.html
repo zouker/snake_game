@@ -4,7 +4,13 @@
         <title>Snake Game</title>
     </head>
     <body>
-        <canvas id="gameCanvas" width="300" height="300"></canvas>
+        <canvas id="gameCanvas" width="300" height="300"></canvas> 
+        <h1>Scoreboard:</h1>
+        <span>Current: </span>
+        <span id="currentScore">0</span>
+        <br/>
+        <span>Max: </span>
+        <span id="maxScore">0</span>
         <style>
             #gameCanvas {
                 border: 1px solid goldenrod;
@@ -12,46 +18,67 @@
         </style>
     </body>
     <script>
-        let snake = [
-                    {x: 150, y: 150},  
-                    {x: 140, y: 150},
-                    {x: 130, y: 150},  
-                    {x: 120, y: 150},  
-                    {x: 110, y: 150},
+        const UNIT_SIZE = 10;
+        let defaultSnake = [
+                    {x: 15, y: 15},  
+                    {x: 14, y: 15},
+                    {x: 13, y: 15},  
+                    {x: 12, y: 15},  
+                    {x: 11, y: 15},
                     ];
+        let snake = defaultSnake.slice();
+        let food = [];
         const ctx = gameCanvas.getContext("2d");
+        var currentScore = document.getElementById("currentScore"); 
+        var maxScore = document.getElementById("maxScore"); 
+        let score = 0;
         document.addEventListener("keydown", changeDirection);
         main();
+        
         function main(){
             setTimeout(function onTick() {
+                generate_food();
                 clearCanvas();
                 moveSnake(curr_direction);
                 drawSnake();
+                drawFood();
                 main();
-            }, 1000);
+            }, 300);
         }
+
+        function resetGame(){
+            maxScore.textContent = currentScore.textContent;
+            currentScore.textContent = 0;
+            score = 0;
+            food = [];
+            snake = defaultSnake.slice();
+        }
+
         curr_direction = 2;
         function changeDirection(event) {
-            console.log("dupa");
             const LEFT_KEY = 37;
             const RIGHT_KEY = 39;
             const keyPressed = event.keyCode;
             switch (keyPressed) {
                 case LEFT_KEY:
                     curr_direction = (curr_direction+1)%4;
-                    console.log(curr_direction);
                     break;
                 case RIGHT_KEY:
                     curr_direction = (curr_direction-1+4)%4;  // +4 to make sure no negative
-                    console.log(curr_direction);
                     break;
             }
         }
         function drawSnakePart(snakePart) {
             ctx.fillStyle = 'lightgreen';
             ctx.strokestyle = 'darkgreen';
-            ctx.fillRect(snakePart.x, snakePart.y, 10, 10);
-            ctx.strokeRect(snakePart.x, snakePart.y, 10, 10);
+            ctx.fillRect(snakePart.x*UNIT_SIZE, snakePart.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+            ctx.strokeRect(snakePart.x*UNIT_SIZE, snakePart.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+        }
+        function drawFoodPart(foodPart){
+            ctx.fillStyle = 'red';
+            ctx.strokestyle = 'orange';
+            ctx.fillRect(foodPart.x*UNIT_SIZE, foodPart.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+            ctx.strokeRect(foodPart.x*UNIT_SIZE, foodPart.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
         }
         function clearCanvas() {
             ctx.fillStyle = 'white';
@@ -62,31 +89,74 @@
         function drawSnake() {
             snake.forEach(drawSnakePart);
         }
+        function drawFood() {
+            food.forEach(drawFoodPart);
+        }
         function moveSnake(curr_direction){
-            snake.shift();
+            
             head = snake.pop();
             snake.push({x: head.x, y:head.y})
+            let next_x = 0;
+            let next_y = 0;
+
             switch (curr_direction) {
                 case 0:
-                    snake.push({x: head.x, y:head.y-10});
+                    next_x = head.x;
+                    next_y = head.y-1;
                     break;
                 case 1:
-                    snake.push({x: head.x-10, y:head.y});
+                    next_x = head.x-1;
+                    next_y = head.y;
                     break;
                 case 2:
-                    snake.push({x: head.x, y:head.y+10});
+                    next_x = head.x;
+                    next_y = head.y+1;
                     break;
                 case 3:
-                    snake.push({x: head.x+10, y:head.y});
+                    next_x = head.x+1;
+                    next_y = head.y;
                     break;
+            }   
+            if (next_x > 30 || next_x < 0 || next_y > 30 || next_x <0){
+                resetGame();
+                return;
             }
             
+
+            if (snake.find(function(elem){
+                return (elem.x == next_x) && (elem.y == next_y);
+            })){
+                resetGame();
+                return;
+            }
+
+            snake.push({x: next_x, y: next_y});
+
+            index_found = food.indexOf(food.find(function(elem){
+                return (elem.x == next_x) && (elem.y == next_y);
+            }));        
+            if(index_found!=-1){
+                food.splice(index_found,1);
+                score+=1;
+                currentScore.textContent = score;
+            }
+            else
+                snake.shift();
+   
         }
-        
-
-        
-
-
-
+        function generate_food(){
+            let rand_x = 0;
+            let rand_y = 0;
+            do{
+                rand_x = Math.floor(Math.random() * 30);
+                rand_y = Math.floor(Math.random() * 30);                
+            } while (
+                (snake.find(function(elem){
+                return ((elem.x == rand_x) && (elem.y == rand_y))})) && 
+                (food.find(function(elem){
+                return ((elem.x == rand_x) && (elem.y == rand_y))}))
+                );
+            food.push({x: rand_x, y:rand_y});
+        }
     </script>
 </html>
