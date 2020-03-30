@@ -21,6 +21,12 @@
         const UNIT_SIZE = 10;
         const TICK_TIME_MS = 300;
         const TICKS_PER_FOOD = 1;
+        
+        const UP_DIRECTION = 0;
+        const RIGHT_DIRECTION = 1;
+        const DOWN_DIRECTION = 2;
+        const LEFT_DIRECTION = 3;
+
         let defaultSnake = [
                     {x: 15, y: 15},  
                     {x: 14, y: 15},
@@ -62,16 +68,33 @@
         curr_direction = 2;
         function changeDirection(event) {
             const LEFT_KEY = 37;
+            const UP_KEY = 38;
             const RIGHT_KEY = 39;
+            const DOWN_KEY = 40;
+            
             const keyPressed = event.keyCode;
-            switch (keyPressed) {
-                case LEFT_KEY:
-                    curr_direction = (curr_direction+1)%4;
+
+            let directionToGo = 0
+            switch (event.keyCode) {
+                case UP_KEY:
+                    directionToGo = UP_DIRECTION;
                     break;
                 case RIGHT_KEY:
-                    curr_direction = (curr_direction-1+4)%4;  // +4 to make sure no negative
+                    directionToGo = RIGHT_DIRECTION;
+                    break;
+                case DOWN_KEY:
+                    directionToGo = DOWN_DIRECTION;
+                    break;
+                case LEFT_KEY:
+                    directionToGo = LEFT_DIRECTION;
                     break;
             }
+            if (isOppositeDirection(directionToGo))
+                return;
+            curr_direction = directionToGo;
+        }
+        function isOppositeDirection(directionToGo){
+            return (curr_direction + directionToGo )% 2 ==0;
         }
         function drawSnakePart(snakePart) {
             ctx.fillStyle = 'lightgreen';
@@ -110,7 +133,7 @@
                     next_y = head.y-1;
                     break;
                 case 1:
-                    next_x = head.x-1;
+                    next_x = head.x+1;
                     next_y = head.y;
                     break;
                 case 2:
@@ -118,7 +141,7 @@
                     next_y = head.y+1;
                     break;
                 case 3:
-                    next_x = head.x+1;
+                    next_x = head.x-1;
                     next_y = head.y;
                     break;
             }   
