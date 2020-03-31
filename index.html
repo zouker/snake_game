@@ -31,7 +31,6 @@
         const SIZE_Y = 30;
 
         let freeSpace = Array.from(Array(SIZE_X*SIZE_Y).keys())
-        console.log(freeSpace);
         let defaultSnake = [465,466,467,468,469];
 
         let snake = defaultSnake.slice();
@@ -183,7 +182,8 @@
             }
 
             //outside playtable
-            if (nextX > 30 || nextY < 0 || nextY > 30 || nextX <0){
+            if (nextX > 29 || nextY < 0 || nextY > 29 || nextX <0){
+                
                 resetGame();
                 return;
             }
@@ -219,6 +219,9 @@
         function generate_food(){
             if (freeSpace.length == 0)
                 return; // no place for food
+            if (freeSpace.food > 15){
+                return;
+            }
             if (ticks%TICKS_PER_FOOD)
                 return;
             let randX = 0;
