@@ -26,16 +26,17 @@
         const RIGHT_DIRECTION = 1;
         const DOWN_DIRECTION = 2;
         const LEFT_DIRECTION = 3;
+        
+        const SIZE_X = 30;
+        const SIZE_Y = 30;
 
-        let defaultSnake = [
-                    {x: 15, y: 15},  
-                    {x: 14, y: 15},
-                    {x: 13, y: 15},  
-                    {x: 12, y: 15},  
-                    {x: 11, y: 15},
-                    ];
+        let freeSpace = Array.from(Array(SIZE_X*SIZE_Y).keys())
+        console.log(freeSpace);
+        let defaultSnake = [465,466,467,468,469];
+
         let snake = defaultSnake.slice();
         let food = [];
+        let currDirection = 0;
         const ctx = gameCanvas.getContext("2d");
         var currentScore = document.getElementById("currentScore"); 
         var maxScore = document.getElementById("maxScore"); 
@@ -48,7 +49,7 @@
             setTimeout(function onTick() {
                 generate_food();
                 clearCanvas();
-                moveSnake(curr_direction);
+                moveSnake(currDirection);
                 drawSnake();
                 drawFood();
                 main();
@@ -65,7 +66,17 @@
             snake = defaultSnake.slice();
         }
 
-        curr_direction = 2;
+        function getXYFromPosition(position){
+            x = position % SIZE_X;
+            y = (position - x) / SIZE_Y;
+            return {'x': x, 'y': y};
+        }
+
+        function getPositonFromXY(cords){
+            return cords.y * SIZE_Y +cords.x;
+        }
+
+        currDirection = 2;
         function changeDirection(event) {
             const LEFT_KEY = 37;
             const UP_KEY = 38;
@@ -91,22 +102,24 @@
             }
             if (isOppositeDirection(directionToGo))
                 return;
-            curr_direction = directionToGo;
+            currDirection = directionToGo;
         }
         function isOppositeDirection(directionToGo){
-            return (curr_direction + directionToGo )% 2 ==0;
+            return (currDirection + directionToGo )% 2 ==0;
         }
         function drawSnakePart(snakePart) {
             ctx.fillStyle = 'lightgreen';
             ctx.strokestyle = 'darkgreen';
-            ctx.fillRect(snakePart.x*UNIT_SIZE, snakePart.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-            ctx.strokeRect(snakePart.x*UNIT_SIZE, snakePart.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+            snakePartXY = getXYFromPosition(snakePart);
+            ctx.fillRect(snakePartXY.x*UNIT_SIZE, snakePartXY.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+            ctx.strokeRect(snakePartXY.x*UNIT_SIZE, snakePartXY.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
         }
         function drawFoodPart(foodPart){
             ctx.fillStyle = 'red';
             ctx.strokestyle = 'orange';
-            ctx.fillRect(foodPart.x*UNIT_SIZE, foodPart.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-            ctx.strokeRect(foodPart.x*UNIT_SIZE, foodPart.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+            foodPartXY = getXYFromPosition(foodPart);
+            ctx.fillRect(foodPartXY.x*UNIT_SIZE, foodPartXY.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+            ctx.strokeRect(foodPartXY.x*UNIT_SIZE, foodPartXY.y*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
         }
         function clearCanvas() {
             ctx.fillStyle = 'white';
@@ -120,53 +133,77 @@
         function drawFood() {
             food.forEach(drawFoodPart);
         }
-        function moveSnake(curr_direction){
-            
-            head = snake.pop();
-            snake.push({x: head.x, y:head.y})
-            let next_x = 0;
-            let next_y = 0;
+        function pushToSnake(position){
+            const index = freeSpace.indexOf(position);
+            freeSpace.splice(index, 1);
+            snake.push(position);
+        }
+        function pushToFood(position){
+            const index = freeSpace.indexOf(position);
+            freeSpace.splice(index, 1);
+            food.push(position);
+        }
 
-            switch (curr_direction) {
+        function popFromSnake(){
+            head = snake.pop();
+            freeSpace.push(head);
+            return head;
+        }
+        function removeFood(index){
+            position = food[index];
+            freeSpace.push(position);
+            food.splice(index,1);
+        }
+
+        function moveSnake(currDirection){
+            
+            head = popFromSnake();
+            headXY = getXYFromPosition(head);
+            pushToSnake(head);
+            let nextX = 0;
+            let nextY = 0;
+
+            switch (currDirection) {
                 case 0:
-                    next_x = head.x;
-                    next_y = head.y-1;
+                    nextX = headXY.x;
+                    nextY = headXY.y-1;
                     break;
                 case 1:
-                    next_x = head.x+1;
-                    next_y = head.y;
+                    nextX = headXY.x+1;
+                    nextY = headXY.y;
                     break;
                 case 2:
-                    next_x = head.x;
-                    next_y = head.y+1;
+                    nextX = headXY.x;
+                    nextY = headXY.y+1;
                     break;
                 case 3:
-                    next_x = head.x-1;
-                    next_y = head.y;
+                    nextX = headXY.x-1;
+                    nextY = headXY.y;
                     break;
-            }   
+            }
+
             //outside playtable
-            if (next_x > 30 || next_y < 0 || next_y > 30 || next_x <0){
+            if (nextX > 30 || nextY < 0 || nextY > 30 || nextX <0){
                 resetGame();
                 return;
             }
             //run into itself
             if (snake.find(function(elem){
-                return (elem.x == next_x) && (elem.y == next_y);
+                return (getXYFromPosition(elem).x == nextX) && (getXYFromPosition(elem).y == nextY);
             })){
                 resetGame();
                 return;
             }
             
             //move snake
-            snake.push({x: next_x, y: next_y});
+            pushToSnake(getPositonFromXY({'x': nextX, 'y': nextY}));
             
             //enlarge only if eaten apple
-            index_found = food.indexOf(food.find(function(elem){
-                return (elem.x == next_x) && (elem.y == next_y);
+            indexFound = food.indexOf(food.find(function(elem){
+                return (getXYFromPosition(elem).x == nextX) && (getXYFromPosition(elem).y == nextY);
             }));        
-            if(index_found!=-1){
-                food.splice(index_found,1);
+            if(indexFound!=-1){
+                removeFood(indexFound);
                 score+=1;
                 currentScore.textContent = score;
             }
@@ -176,20 +213,21 @@
         }
         function isIn(cords, x, y){
             return typeof(cords.find(function(elem){
-                return ((elem.x == x) && (elem.y == y))})) 
+                return ((getXYFromPosition(elem).x == x) && (getXYFromPosition(elem).y == y))})) 
                 !== "undefined";
         }
         function generate_food(){
+            if (food.length == 0)
+                return; // no place for food
             if (ticks%TICKS_PER_FOOD)
                 return;
-            let rand_x = 0;
-            let rand_y = 0;
+            let randX = 0;
+            let randY = 0;
             do{
-                rand_x = Math.floor(Math.random() * 30);
-                rand_y = Math.floor(Math.random() * 30);                
-            } while(isIn(snake, rand_x, rand_y) | isIn(food, rand_x, rand_y))
-                
-            food.push({x: rand_x, y:rand_y});
+                randX = Math.floor(Math.random() * 30);
+                randY = Math.floor(Math.random() * 30);                
+            } while(isIn(snake, randX, randY) | isIn(food, randX, randY))
+            pushToFood(getPositonFromXY({'x': randX, 'y': randY}));
         }
     </script>
 </html>
