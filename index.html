@@ -219,10 +219,10 @@
         }
         function generate_food(){
             if (freeSpace.length == 0)
-                return; // no place for food
-            }
+                return 0; // no place for food
+            
             if (ticks%TICKS_PER_FOOD)
-                return;
+                return 0;
             let randX = 0;
             let randY = 0;
             do{
