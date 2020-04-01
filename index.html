@@ -62,7 +62,7 @@
             currentScore.textContent = 0;
             score = 0;
             food = [];
-            freeSpace = [];
+            freeSpace = Array.from(Array(SIZE_X*SIZE_Y).keys());
             snake = defaultSnake.slice();
         }
 
